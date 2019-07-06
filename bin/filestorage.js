@@ -1,4 +1,4 @@
-var fs = require('fs')
+const fs = require('fs');
 
 function FileStorage(opts) {
   if (!opts.filename) {
@@ -13,15 +13,12 @@ FileStorage.prototype.getName = function() {
 };
 
 FileStorage.prototype.save = function(data, cb) {
-  this.fs.writeFile(this.filename, JSON.stringify(data), cb);
+  this.fs.writeFile(this.filename, data, cb);
 };
 
 FileStorage.prototype.load = function(cb) {
   this.fs.readFile(this.filename, 'utf8', function(err, data) {
     if (err) return cb(err);
-    try {
-      data = JSON.parse(data);
-    } catch (e) {}
     return cb(null, data);
   });
 };

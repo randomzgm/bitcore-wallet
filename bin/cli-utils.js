@@ -1,6 +1,6 @@
 var _ = require('lodash');
 var url = require('url');
-var read = require('read')
+var read = require('read');
 var log = require('npmlog');
 var Client = require('bitcore-wallet-client');
 var FileStorage = require('./filestorage');
@@ -14,7 +14,7 @@ var Utils = function() {};
 
 var die = Utils.die = function(err) {
   if (err) {
-    if (err.code && err.code == 'ECONNREFUSED') {
+    if (err.code && err.code === 'ECONNREFUSED') {
       console.error('!! Could not connect to Bicore Wallet Service');
     } else {
       console.log('!! ' + err.toString());
@@ -45,7 +45,7 @@ Utils.shortID = function(id) {
 
 Utils.confirmationId = function(copayer) {
   return parseInt(copayer.xPubKeySignature.substr(-4), 16).toString().substr(-4);
-}
+};
 
 
 Utils.doLoad = function(client, doNotComplete, walletData, password, filename, cb) {
@@ -61,7 +61,7 @@ Utils.doLoad = function(client, doNotComplete, walletData, password, filename, c
     client.import(walletData);
   } catch (e) {
     die('Corrupt wallet file.');
-  };
+  }
   if (doNotComplete) return cb(client);
 
 
@@ -109,7 +109,7 @@ Utils.getClient = function(args, opts, cb) {
 
   storage.load(function(err, walletData) {
     if (err) {
-      if (err.code == 'ENOENT') {
+      if (err.code === 'ENOENT') {
         if (opts.mustExist) {
           die('File "' + filename + '" not found.');
         }
@@ -128,7 +128,7 @@ Utils.getClient = function(args, opts, cb) {
       json = JSON.parse(walletData);
     } catch (e) {
       die('Invalid input file');
-    };
+    }
 
     if (json.ct) {
       Utils.loadEncrypted(client, opts, walletData, filename, cb);
@@ -168,7 +168,7 @@ Utils.saveEncrypted = function(client, filename, cb) {
       silent: true
     }, function(er, password2) {
       if (er) Utils.die(err);
-      if (password != password2)
+      if (password !== password2)
         Utils.die("passwords were not equal");
 
       Utils.doSave(client, filename, password, cb);
@@ -200,7 +200,7 @@ Utils.saveClient = function(args, client, opts, cb) {
       Utils.saveEncrypted(client, filename, cb);
     } else {
       Utils.doSave(client, filename, null, cb);
-    };
+    }
   });
 };
 
@@ -248,7 +248,7 @@ Utils.parseAmount = function(text) {
   }
 
   var amountSat = parseFloat((amount * rate).toPrecision(12));
-  if (amountSat != Math.round(amountSat)) {
+  if (amountSat !== Math.round(amountSat)) {
     Utils.die('Invalid amount: ' + amount + ' ' + unit);
   }
 
@@ -260,7 +260,7 @@ Utils.configureCommander = function(program) {
     .version('0.0.1')
     .option('-f, --file <filename>', 'Wallet file')
     .option('-h, --host <host>', 'Bitcore Wallet Service URL (eg: http://localhost:3001/copay/api')
-    .option('-v, --verbose', 'be verbose')
+    .option('-v, --verbose', 'be verbose');
 
   return program;
 };
@@ -284,13 +284,12 @@ Utils.COIN = {
     maxDecimals: 2,
     minDecimals: 2,
   },
-  bch: {
-    name: 'bch',
+  part: {
+    name: 'part',
     toSatoshis: 100000000,
     maxDecimals: 8,
-    minDecimals: 8,
-  },
- 
+    minDecimals: 8
+  }
 };
 
 Utils.renderAmount = function(satoshis, coin, opts) {
@@ -298,7 +297,7 @@ Utils.renderAmount = function(satoshis, coin, opts) {
     var x = number.toString().split('.');
     var d = (x[1] || '0').substring(0, decimals);
     return parseFloat(x[0] + '.' + d);
-  };
+  }
 
   function addSeparators(nStr, thousands, decimal, minDecimals) {
     nStr = nStr.replace('.', decimal);
@@ -307,18 +306,18 @@ Utils.renderAmount = function(satoshis, coin, opts) {
     var x1 = x[1];
 
     x1 = _.dropRightWhile(x1, function(n, i) {
-      return n == '0' && i >= minDecimals;
+      return n === '0' && i >= minDecimals;
     }).join('');
     var x2 = x.length > 1 ? decimal + x1 : '';
 
     x0 = x0.replace(/\B(?=(\d{3})+(?!\d))/g, thousands);
     return x0 + x2;
-  };
+  }
 
   opts = opts || {};
 
-  var coin = coin || 'btc';
-  var u = Utils.COIN[coin] || Utils.COIN.btc;
+  const myCoin = coin || 'btc';
+  var u = Utils.COIN[myCoin] || Utils.COIN.btc;
   var amount = clipDecimals((satoshis / u.toSatoshis), u.maxDecimals).toFixed(u.maxDecimals);
   return addSeparators(amount, opts.thousandsSeparator || ',', opts.decimalSeparator || '.', u.minDecimals) + ' ' + u.name;
 };
@@ -327,17 +326,17 @@ Utils.renderTxProposals = function(txps) {
   if (_.isEmpty(txps))
     return;
 
-  console.log("* TX Proposals:")
+  console.log("* TX Proposals:");
 
   _.each(txps, function(x) {
     var missingSignatures = x.requiredSignatures - _.filter(_.values(x.actions), function(a) {
-      return a.type == 'accept';
+      return a.type === 'accept';
     }).length;
     console.log("\t%s [\"%s\" by %s] %s => %s", Utils.shortID(x.id), x.message, x.creatorName, Utils.renderAmount(x.amount), x.outputs[0].toAddress);
 
     if (!_.isEmpty(x.actions)) {
       console.log('\t\tActions: ', _.map(x.actions, function(a) {
-        return a.copayerName + ' ' + (a.type == 'accept' ? '✓' : '✗') + (a.comment ? ' (' + a.comment + ')' : '');
+        return a.copayerName + ' ' + (a.type === 'accept' ? '✓' : '✗') + (a.comment ? ' (' + a.comment + ')' : '');
       }).join('. '));
     }
     if (missingSignatures > 0) {

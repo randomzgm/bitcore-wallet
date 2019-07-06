@@ -3,7 +3,7 @@
 var program = require('commander');
 
 program
-  .version('0.0.7')
+  .version('0.0.8')
   .command('create <walletName> <m-n> [username]', 'creates a wallet')
   .command('join <secret> [username]', 'join a wallet')
   .command('mnemonic', 'show mnemonics from my wallet')
